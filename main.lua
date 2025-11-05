@@ -1,9 +1,11 @@
 utils = require("src.utils")
 player = require("src.player")
 asteroid = require("src.asteroid")
+bullet = require("src.bullet")
 
 --globals
 screen_width, screen_height = 128, 128
+debug_draw = true
 
 --love.run override to lock game to 60 fps
 function love.run()
@@ -92,18 +94,44 @@ function love.load()
     Player = player.new_player(screen_width / 2, screen_height / 2)
     Player:init()
 
+    function shoot_bullet(x, y, rotation)
+        local b = bullet.new_bullet(x, y, rotation)
+        b:init()
+        table.insert(bullets, b)
+    end
+
+    Player.on_shoot = shoot_bullet
+
     asteroid_small_sprite = utils.load_sprite("asteroid_small")
     asteroid_medium_sprite = utils.load_sprite("asteroid_medium")
     asteroid_large_sprite = utils.load_sprite("asteroid_large")
 
-    --definir asteroide
-    Asteroid = asteroid.new_asteroid(20, 20, asteroid.sizes.LARGE)
-    Asteroid:init()
+    bullet_sprite = utils.load_sprite("bullet_2")
+
+    --definir un asteroide
+    asteroids = {}
+    --definir lista de balas
+    bullets = {}
+
+    local a = asteroid.new_asteroid(30, 30, asteroid.sizes.LARGE)
+    a:init()
+    table.insert(asteroids, a)
 end
 
 function love.update(dt)
     Player:update()
-    Asteroid:update()
+
+    --actualizar asteroides
+   for i = #asteroids, 1, -1 do
+        local current_asteroid = asteroids[i]
+        current_asteroid:update()
+    end    
+
+    --actualizar balas
+    for i = #bullets, 1, -1 do
+        local current_bullet = bullets[i]
+        current_bullet:update()
+    end
 end
 
 function love.draw()
@@ -126,7 +154,18 @@ function love.draw()
 
     --aca se dibuja el mundo
     Player:draw()
-    Asteroid:draw()
+
+    --dibujar asteroid
+    for i = #asteroids, 1, -1 do
+        local current_asteroid = asteroids[i]
+        current_asteroid:draw()
+    end   
+
+    --dibujar balas
+    for i = #bullets, 1, -1 do
+        local current_bullet = bullets[i]
+        current_bullet:draw()
+    end
 
     --stop drawing
     love.graphics.pop()

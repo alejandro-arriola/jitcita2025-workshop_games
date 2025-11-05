@@ -17,6 +17,17 @@ function asteroid.new_asteroid(x, y, size)
 
     function a:init()
         self.rotation_deg = math.random(0, 359)
+        if self.size == asteroid.sizes.LARGE then
+            self.sprite = asteroid_large_sprite
+        end
+
+        if self.size == asteroid.sizes.MEDIUM then
+            self.sprite = asteroid_medium_sprite
+        end
+
+        if self.size == asteroid.sizes.SMALL then
+            self.sprite = asteroid_small_sprite
+        end
     end
 
     function a:update()
@@ -24,17 +35,7 @@ function asteroid.new_asteroid(x, y, size)
     end
 
     function a:draw()
-        if self.size == asteroid.sizes.LARGE then
-            utils.draw_sprite(asteroid_large_sprite, self.x, self.y, math.rad(self.rotation_deg), 1, 1, true)
-        end
-        
-        if self.size == asteroid.sizes.MEDIUM then
-            utils.draw_sprite(asteroid_medium_sprite, self.x, self.y, math.rad(self.rotation_deg), 1, 1, true)
-        end
-        
-        if self.size == asteroid.sizes.SMALL then
-            utils.draw_sprite(asteroid_small_sprite, self.x, self.y, math.rad(self.rotation_deg), 1, 1, true)
-        end
+       utils.draw_sprite(asteroid_large_sprite, self.x, self.y, math.rad(self.rotation_deg), 1, 1, true)
     end
 
     return a
