@@ -10,13 +10,14 @@ function player.new_player(x, y)
         accel = 0.05,
         friction = 0.98,
         rotation_deg = 0,
-        nombre = "pancho",
-        shoot_cooldown = 15,
+        shoot_cooldown = 15, -- 1/4 de segundo
         counter = 0,
-        bbox = hc.rectangle(0, 0, 6, 6)
+        bbox = hc.rectangle(0, 0, 6, 6),
+        type = utils.object_types.PLAYER
     }
 
     function p:init()
+        self.bbox.owner = self
         self.sprite = player_sprite
     end
 
@@ -30,7 +31,7 @@ function player.new_player(x, y)
         local move_left = love.keyboard.isDown("left")
         local move_up = love.keyboard.isDown("up")
         local shoot_button = love.keyboard.isDown("space")
-        
+
         if move_right then
             self.rotation_deg = self.rotation_deg + 5
         end
@@ -44,13 +45,14 @@ function player.new_player(x, y)
             self.vy = self.vy + math.sin(math.rad(self.rotation_deg)) * self.accel
         end
 
-        --disparar
+        -- disparar
         if shoot_button and self.counter <= 0 then
-            --asignar el contador
+            -- asignamos el contador
             self.counter = self.shoot_cooldown
 
             if self.on_shoot then
-                self.on_shoot(self.x, self.y, math.rad(self.rotation_deg))
+                local angle = self.rotation_deg + math.random(-10, 10)
+                self.on_shoot(self.x, self.y, math.rad(angle))
             end
         end
 
@@ -62,9 +64,10 @@ function player.new_player(x, y)
         self.x = self.x + self.vx
         self.y = self.y + self.vy
 
-        if self.bbox == nil then
-            self.bbox.moveTo(self.x, self.y)
-            self.bbox.setRotation(math.rad(self.rotation_deg), self.x, self.y)
+        --mover colisiones
+        if self.bbox ~= nil then
+            self.bbox:moveTo(self.x,self.y)
+            self.bbox:setRotation(math.rad(self.rotation_deg), self.x, self.y)
         end
 
         --screen wrapping
@@ -73,6 +76,10 @@ function player.new_player(x, y)
 
     function p:draw()
         utils.draw_sprite(self.sprite, self.x, self.y, math.rad(self.rotation_deg), 1, 1, true)
+
+        if self.bbox ~= nil then
+            utils.debug_draw(self.bbox)
+        end
     end
 
     return p

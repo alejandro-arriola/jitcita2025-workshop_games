@@ -3,6 +3,8 @@ JITCITA is an annual IT-related event organized by [Universidad Autónoma de Asu
 
 In the [2025 edition](https://www.linkedin.com/posts/decareaga_uaa-jitcita2025-tecnolog%C3%ADa-activity-7389282689138446336-E2Y4/?originalSubdomain=es), the workshop I choose was about a demo of video game development by making an Asteroids clone using LUA and the [LÖVE](https://www.love2d.org/) framework in VS Code.
 
+The event took place from November 3 to November 8
+
 Our instructor was [Mauricio Verdún](https://www.linkedin.com/in/jxpitwrr/)
 
 ## Instructions

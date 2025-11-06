@@ -2,10 +2,12 @@ utils = require("src.utils")
 player = require("src.player")
 asteroid = require("src.asteroid")
 bullet = require("src.bullet")
+particle = require("src.particle")
 
 --globals
 screen_width, screen_height = 128, 128
-debug_draw = true
+debug_draw = false
+score = 0
 
 --love.run override to lock game to 60 fps
 function love.run()
@@ -94,6 +96,7 @@ function love.load()
     Player = player.new_player(screen_width / 2, screen_height / 2)
     Player:init()
 
+    --callback
     function shoot_bullet(x, y, rotation)
         local b = bullet.new_bullet(x, y, rotation)
         b:init()
@@ -108,29 +111,70 @@ function love.load()
 
     bullet_sprite = utils.load_sprite("bullet_2")
 
-    --definir un asteroide
+    --definir lista de asteroides
     asteroids = {}
-    --definir lista de balas
+    -- definir lista de balas
     bullets = {}
+    -- definir lista de particulas
+    particles = {}
 
-    local a = asteroid.new_asteroid(30, 30, asteroid.sizes.LARGE)
-    a:init()
-    table.insert(asteroids, a)
+    -- solo para test
+    local a1 = asteroid.new_asteroid(20, 20, asteroid.sizes.LARGE)
+    a1:init()
+    table.insert(asteroids, a1)
+    local a2= asteroid.new_asteroid(20, 40, asteroid.sizes.MEDIUM)
+    a2:init()
+    table.insert(asteroids, a2)
+    local a3 = asteroid.new_asteroid(20, 60, asteroid.sizes.SMALL)
+    a3:init()
+    table.insert(asteroids, a3)
 end
 
 function love.update(dt)
     Player:update()
 
-    --actualizar asteroides
-   for i = #asteroids, 1, -1 do
-        local current_asteroid = asteroids[i]
-        current_asteroid:update()
-    end    
+    if love.keyboard.isDown("z") then
+        create_explosion()
+    end
 
-    --actualizar balas
+    utils.check_all_collisions()
+
+    -- actualizar asteroides
+    for i = #asteroids, 1, -1 do
+        local current_asteroid = asteroids[i]
+        if (current_asteroid.flag_for_deletion) then
+            hc.remove(current_asteroid.bbox)
+            table.remove(asteroids, i)
+        else
+            current_asteroid:update()
+        end
+    end
+
+    -- actualizar balas
     for i = #bullets, 1, -1 do
         local current_bullet = bullets[i]
-        current_bullet:update()
+        if (current_bullet:is_offscreen()) then
+            if current_bullet.bbox then
+                hc.remove(current_bullet.bbox)
+            end 
+            table.remove(bullets, i)
+        else
+            current_bullet:update()
+        end
+    end
+
+    -- actualizar particulas
+    for i = #particles, 1, -1 do
+        local current_particle = particles[i]
+        if current_particle.flag_for_deletion then
+            table.remove(particles, i)
+        else
+            current_particle:update()
+        end
+    end
+
+    if #asteroids == 0 then
+        spawn_asteroid()
     end
 end
 
@@ -155,18 +199,48 @@ function love.draw()
     --aca se dibuja el mundo
     Player:draw()
 
-    --dibujar asteroid
+    -- dibujar asteroides
     for i = #asteroids, 1, -1 do
         local current_asteroid = asteroids[i]
         current_asteroid:draw()
-    end   
+    end
 
-    --dibujar balas
+    -- dibujar balas
     for i = #bullets, 1, -1 do
         local current_bullet = bullets[i]
         current_bullet:draw()
     end
 
+    for i = #particles, 1, -1 do
+        local current_particle = particles[i]
+        current_particle:draw()
+    end
+
+    utils.set_draw_color(utils.colors.RED)
+    love.graphics.print(score, 10, 10)
+    utils.reset_draw_color()
+
     --stop drawing
     love.graphics.pop()
+end
+
+function create_explosion(x, y)
+    for i = 1, 20, 1 do
+        create_particle(x, y)
+    end
+end
+
+function create_particle(x, y)
+    local part = particle.new_particle(x, y)
+    part:init()
+    table.insert(particles, part)
+end
+
+function spawn_asteroid()
+    for i = 1, 5, 1 do
+        local a = asteroid.new_asteroid(20, 20, asteroid.sizes.LARGE)
+        a:init()
+        a.explosion = create_explosion
+        table.insert(asteroids, a)
+    end
 end
