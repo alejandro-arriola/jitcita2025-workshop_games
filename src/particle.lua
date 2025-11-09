@@ -1,61 +1,72 @@
-utils = require("src.utils")
+local particle = {}
+local utils = require("src.utils")
 
-particle = {}
-
-function particle.new_particle(x, y)
-    local p = {
+function particle.new_particle(x, y, scale, move)
+    local part = {
         x = x,
         y = y,
-        lifetime = 5,
-        flag_for_deletion = false,
-        radius = math.random(2,4),
-        possible_colors = {
+        scale = scale,
+        rotation_rad = math.rad(love.math.random(359)),
+        decrement_value = 0.1,
+        possible_colors = { --backwards because we're decreasing lifetime
             utils.colors.DARKGREY,
             utils.colors.ORANGE,
-            utils.colors.YELLOW, 
-            utils.colors.WHITE, 
+            utils.colors.YELLOW,
+            utils.colors.WHITE
         },
+        move = move,
+        lifetime = 5,
+        flag_for_deletion = false,
+        speed_x = 0,
+        speed_y = 0,
+        color = utils.colors.WHITE
     }
-
-    function p:init()
-        self.rotation_rad = math.rad(math.random(359))
-        self.speed_x = love.math.random(1, 2)
-        self.speed_y = love.math.random(1, 2)
-
-        self.vx = math.cos(self.rotation_rad) * self.speed_x
-        self.vy = math.sin(self.rotation_rad) * self.speed_y
+    
+    function part:init()
+        if self.move then
+            local angle = self.rotation_rad
+            local speed = math.random()
+            self.speed_x = math.cos(angle) * speed
+            self.speed_y = math.sin(angle) * speed
+        end
     end
 
-    function p:update()
-        -- logica de actualizacion de particula
-        if self.lifetime > 0 then
-            self.lifetime = self.lifetime - 0.1
-        else
-            self.flag_for_deletion = true
+    function part:update()
+        if self.flag_for_deletion then
+            return
         end
 
-        self.color_index = math.random(1, math.floor(self.lifetime))
-
-        if self.radius > 0 then
-            self.radius = self.radius - 0.1
-
+        if self.move then
             self.x = self.x + self.speed_x
             self.y = self.y + self.speed_y
         end
+
+        if (self.scale > 0) then
+            self.scale = self.scale - self.decrement_value
+        end
+
+        local idx = math.floor(self.lifetime)
+        idx = math.max(1, math.min(#self.possible_colors, idx))
+        self.color = self.possible_colors[idx]
+
+        if (self.lifetime > 0) then
+            self.lifetime = self.lifetime - self.decrement_value
+        else
+            if (not self.flag_for_deletion) then
+                self.flag_for_deletion = true
+            end
+        end
     end
 
-    function p:draw()
-        if self.radius > 0 then
-            if self.color_index then
-                utils.set_draw_color(self.possible_colors[self.color_index])
-            end
-
-            love.graphics.circle("fill", self.x, self.y, self.radius)
+    function part:draw()
+        if (not self.flag_for_deletion) then
+            utils.set_draw_color(self.color)
+            love.graphics.circle("fill", self.x, self.y, self.scale)
             utils.reset_draw_color()
         end
     end
 
-    return p
+    return part
 end
 
 return particle
