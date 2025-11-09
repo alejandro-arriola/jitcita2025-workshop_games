@@ -1,49 +1,60 @@
-utils = require("src.utils")
--- MODULO
-bullet = {}
+local bullet = {}
+local utils = require("src.utils")
 
+-- bullet constructor
 function bullet.new_bullet(x, y, rotation_rad)
-    --CLASE
-    local b = {
+    local bul = {
+        type = utils.object_types.BULLET,
         x = x,
         y = y,
-        rotation_rad = rotation_rad,
-        accel = 5.0,
+        spd = 8,
         vx = 0,
         vy = 0,
-        bbox = hc.rectangle(0,0,8,4),
-        type = utils.object_types.BULLET
+        --sprite = nil
+        rotation_rad = rotation_rad,
+        run_once = false,
+        bbox = hc.rectangle(x, y, 8, 4)
     }
 
-    function b:init()
+    function bul:init()
+        if self.run_once then
+            return
+        end
+        
+        self.sprite = bullet_sprite
         self.bbox.owner = self
-        self.vx = math.cos(self.rotation_rad) * self.accel
-        self.vy = math.sin(self.rotation_rad) * self.accel
+        
+        self.bbox:setRotation(self.rotation_rad)
+
+        --set speed
+        self.vx = math.cos(rotation_rad) * self.spd
+        self.vy = math.sin(rotation_rad) * self.spd
+        
+        self.run_once = true
     end
 
-    function b:update()
+    function bul:update()
+        self:init()
+        -- move at constant velocity
         self.x = self.x + self.vx
         self.y = self.y + self.vy
 
         if self.bbox ~= nil then
-            self.bbox:moveTo(self.x,self.y)
-            self.bbox:setRotation(self.rotation_rad, self.x, self.y)
+            self.bbox:moveTo(self.x, self.y)
         end
     end
 
-    function b:draw()
-        utils.draw_sprite(bullet_sprite, self.x, self.y, self.rotation_rad, 1, 1, true)
+	function bul:draw()
+		utils.draw_sprite(self.sprite, self.x, self.y, rotation_rad, 1, 1, true)
+        --debug draw
+        utils.debug_draw(self.bbox)
+	end
 
-        if self.bbox ~= nil then
-            utils.debug_draw(self.bbox)
-        end
-    end
+	function bul:is_offscreen()
+		return self.x < 0 or self.x > screen_width or self.y < 0 or self.y > screen_height
+	end
 
-    function b:is_offscreen()
-        return (self.x < 0 or self.x > screen_width or self.y < 0 or self.y > screen_height)
-    end
-
-    return b
+    return bul
 end
 
 return bullet

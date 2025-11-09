@@ -63,9 +63,19 @@ function utils.screen_wrap(object)
 end
 
 function utils.check_all_collisions()
+    -- check player vs asteroids
+    if Player:is_alive() and not Player.invulnerable then
+        for shape, delta in pairs(hc.collisions(Player.bbox)) do
+            if shape.owner and shape.owner.type == utils.object_types.ASTEROID then
+                Player:die()
+                break
+            end
+        end
+    end
+   
     -- check bullets vs asteroids
     for i = #bullets, 1, -1 do
-        if not bullets[i].flag_for_deletion then  -- skip if already deleted
+        if not bullets[i].flag_for_deletion and game_state ~= game_states.GAME_OVER then  -- skip if already deleted
             for shape, delta in pairs(hc.collisions(bullets[i].bbox)) do
                 if shape.owner and shape.owner.type == utils.object_types.ASTEROID then
                     -- destroy bullet
@@ -99,7 +109,7 @@ function utils.load_sound(soundfile_name, volume)
     return sound
 end
 
---pass in a color from our palette
+--pass in a color from out palette
 function utils.set_draw_color(color)
     love.graphics.setColor(color[1], color[2], color[3], 1.0)
 end
